@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Employee Timesheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #2F4951;
+    --navy-mid: #445d64;
+    --slate: #4F5F64;
+    --gold: #7B8D92;
+    --gold-light: #AAB8BC;
+    --cream: #FBFBFA;
+    --white: #FFFFFF;
+    --border: #C9CFD1;
+    --border-light: #E6EAEB;
+    --text: #24343A;
+    --text-muted: #66757B;
+    --green: #22C55E;
+    --red: #EF4444;
+    --blue: #3B82F6;
+    --amber: #F59E0B;
+    --purple: #8B5CF6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #F6F7F7;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+  }
+  .page-wrapper { max-width: 1240px; margin: 0 auto; }
+
+  .sheet-header {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-bottom: 0;
+    border-radius: 14px 14px 0 0;
+    padding: 18px 28px 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .sheet-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--navy);
+  }
+  .sheet-header::after {
+    content: '';
+    position: absolute;
+    right: 28px; top: 18px;
+    width: 96px; height: 1px;
+    background: rgba(47,73,81,0.18);
+  }
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .company-brand { display: flex; align-items: center; gap: 14px; }
+  .brand-mark {
+    width: 54px; height: 54px;
+    border-radius: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .brand-text .company-name {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 28px;
+    line-height: 1;
+    color: #2F4951;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .brand-text .doc-type {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .header-meta { text-align: right; }
+  .ts-id {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.16em;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .ts-number {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 24px;
+    color: var(--navy);
+    line-height: 1;
+    font-weight: 600;
+  }
+  .header-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0 12px;
+  }
+  .header-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 30px;
+    color: var(--navy);
+    letter-spacing: 0.01em;
+    line-height: 1.05;
+    font-weight: 600;
+  }
+  .header-title em { color: var(--navy); font-style: italic; }
+  .header-subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .sheet-body { background: var(--white); padding: 0 28px; border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+  .section {
+    padding: 28px 0;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .section:last-child { border-bottom: none; }
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .section-num {
+    width: 22px; height: 22px;
+    background: var(--white);
+    border: 1px solid var(--navy);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--navy);
+    flex-shrink: 0;
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 22px;
+    color: var(--navy);
+    letter-spacing: 0.02em;
+    font-weight: 600;
+  }
+  .section-desc {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-left: auto;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .form-grid { display: grid; gap: 14px; }
+  .form-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .form-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .form-field { display: flex; flex-direction: column; gap: 5px; }
+  .form-field label {
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+  }
+  .form-field input,
+  .form-field select,
+  .form-field textarea {
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13.5px;
+    color: var(--text);
+    background: #FCFCFB;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+  }
+  .form-field input:focus,
+  .form-field select:focus,
+  .form-field textarea:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+    background: #fff;
+  }
+  .form-field select,
+  .table-select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+  .required-dot {
+    display: inline-block;
+    width: 5px; height: 5px;
+    background: var(--gold);
+    border-radius: 50%;
+    margin-left: 4px;
+    vertical-align: middle;
+    position: relative;
+    top: -1px;
+  }
+
+  .time-table-wrapper,
+  .project-table-wrapper {
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .time-table,
+  .project-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+  .time-table thead th,
+  .project-table thead th {
+    background: #F7F9F9;
+    color: var(--navy);
+    padding: 9px 10px;
+    text-align: left;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  .time-table thead th .th-accent,
+  .project-table thead th .th-accent { color: var(--gold); }
+  .time-table tbody tr,
+  .project-table tbody tr {
+    border-bottom: 1px solid var(--border-light);
+    transition: background 0.15s;
+  }
+  .time-table tbody tr:last-child,
+  .project-table tbody tr:last-child { border-bottom: none; }
+  .time-table tbody tr:hover,
+  .project-table tbody tr:hover { background: rgba(201,168,76,0.04); }
+  .time-table tbody tr.weekend-row { background: rgba(13,27,42,0.03); }
+  .time-table td,
+  .project-table td { padding: 7px 8px; vertical-align: middle; }
+
+  .day-cell {
+    min-width: 118px;
+    vertical-align: top;
+    background: rgba(13,27,42,0.02);
+  }
+  .day-label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .day-name {
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--navy);
+  }
+  .day-date-display {
+    font-size: 10.5px;
+    color: var(--text-muted);
+  }
+  .day-subnote {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    letter-spacing: 0.03em;
+  }
+
+  .table-input,
+  .table-select,
+  .table-textarea {
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    background: #FCFCFB;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .table-input:focus,
+  .table-select:focus,
+  .table-textarea:focus {
+    border-color: var(--gold);
+    background: #fff;
+    box-shadow: 0 0 0 2px rgba(201,168,76,0.1);
+  }
+  .table-input[type="time"] { min-width: 88px; cursor: pointer; }
+  .table-textarea {
+    min-height: 38px;
+    resize: vertical;
+    line-height: 1.35;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  .hour-type-select {
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+    background: #FCFCFB;
+    min-width: 90px;
+  }
+  .hour-type-select:focus { border-color: var(--gold); }
+  .hour-type-select.regular { color: #1D4ED8; border-color: #BFDBFE; background: #EFF6FF; }
+  .hour-type-select.pto { color: #7C3AED; border-color: #DDD6FE; background: #F5F3FF; }
+  .hour-type-select.sick { color: #DC2626; border-color: #FECACA; background: #FEF2F2; }
+  .hour-type-select.holiday { color: #D97706; border-color: #FDE68A; background: #FFFBEB; }
+  .hour-type-select.overtime { color: #059669; border-color: #A7F3D0; background: #ECFDF5; }
+
+  .billable-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .toggle-switch {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    cursor: pointer;
+  }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .toggle-track {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 20px;
+    transition: background 0.2s;
+  }
+  .toggle-thumb {
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 14px; height: 14px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .toggle-switch input:checked ~ .toggle-track { background: var(--green); }
+  .toggle-switch input:checked ~ .toggle-track .toggle-thumb { transform: translateX(16px); }
+
+  .total-cell {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--navy);
+    text-align: center;
+    min-width: 50px;
+    letter-spacing: -0.02em;
+  }
+  .total-cell.zero { color: var(--text-muted); font-weight: 400; }
+
+  .row-actions {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+  }
+  .mini-btn,
+  .add-row-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .mini-btn {
+    width: 28px;
+    height: 28px;
+    border: 1.5px solid var(--border);
+    background: #FCFCFB;
+    color: var(--slate);
+  }
+  .mini-btn:hover {
+    border-color: var(--gold);
+    color: var(--navy);
+    background: rgba(201,168,76,0.08);
+  }
+  .mini-btn.remove:hover {
+    border-color: #FCA5A5;
+    color: var(--red);
+    background: #FEF2F2;
+  }
+
+  .totals-bar {
+    background: #F7F9F9;
+    border-top: 1px solid var(--border);
+    border-radius: 0 0 10px 10px;
+    padding: 10px 14px;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 1px;
+    overflow: hidden;
+  }
+  .total-item { text-align: center; padding: 8px 12px; position: relative; }
+  .total-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 20%; bottom: 20%;
+    width: 1px;
+    background: var(--border);
+  }
+  .t-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .t-value {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 22px;
+    color: var(--navy);
+    line-height: 1;
+    font-weight: 600;
+  }
+  .t-value.highlight { color: var(--navy); }
+  .t-sub { font-size: 9px; color: var(--text-muted); margin-top: 3px; }
+
+  .add-row-btn {
+    padding: 9px 16px;
+    background: none;
+    border: 1.5px dashed var(--border);
+    color: var(--text-muted);
+    margin-top: 12px;
+  }
+  .add-row-btn:hover {
+    border-color: var(--gold);
+    color: var(--navy);
+    background: rgba(201,168,76,0.05);
+  }
+
+  .project-code-cell { font-weight: 600; color: var(--navy); }
+  .project-metric { text-align: center; font-weight: 600; }
+  .productivity-pill {
+    display: inline-flex;
+    min-width: 74px;
+    justify-content: center;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+  .productivity-good { background: #DCFCE7; color: #166534; }
+  .productivity-mid { background: #FEF3C7; color: #92400E; }
+  .productivity-high { background: #DBEAFE; color: #1D4ED8; }
+  .productivity-na { background: #F3F4F6; color: #6B7280; }
+
+  .summary-cards.compact {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .summary-card.compact {
+    background: #FBFBFA;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 10px 12px;
+    min-height: 78px;
+  }
+  .sc-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+  }
+  .sc-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    line-height: 1.05;
+    color: var(--navy);
+  }
+  .sc-sub {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+  .summary-card.kpi-accent { border-color: var(--border); }
+  .summary-card.kpi-accent .sc-value { color: var(--navy); }
+
+  .comments-area textarea {
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13.5px;
+    color: var(--text);
+    background: #FCFCFB;
+    width: 100%;
+    min-height: 100px;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+    line-height: 1.6;
+  }
+  .comments-area textarea:focus {
+    border-color: var(--gold);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+  }
+  .char-count {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 5px;
+  }
+
+  .attestation-box {
+    background: #FBFBFA;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 24px;
+  }
+  .attest-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 16px;
+    color: var(--navy);
+    margin-bottom: 10px;
+  }
+  .attest-text {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 18px;
+  }
+  .attest-check-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
+  .custom-checkbox {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .custom-checkbox input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .check-mark { display: none; color: white; font-size: 12px; }
+  .custom-checkbox.checked { background: var(--navy); border-color: var(--navy); }
+  .custom-checkbox.checked .check-mark { display: block; }
+  .attest-check-text { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.5; }
+  .sig-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-top: 4px;
+  }
+  .sig-field { display: flex; flex-direction: column; gap: 5px; }
+  .sig-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+  }
+  .sig-line {
+    border: none;
+    border-bottom: 1.5px solid var(--border);
+    background: none;
+    padding: 6px 0;
+    font-family: 'DM Serif Display', serif;
+    font-size: 16px;
+    color: var(--navy);
+    outline: none;
+    width: 100%;
+    font-style: italic;
+  }
+  .sig-line:focus { border-bottom-color: var(--gold); }
+
+  .sheet-footer {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-top: 0;
+    border-radius: 0 0 14px 14px;
+    padding: 14px 28px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+  }
+  .footer-info {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .footer-info strong { color: var(--navy); font-weight: 700; }
+  .btn-group { display: flex; gap: 10px; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    letter-spacing: 0.02em;
+  }
+  .btn-outline {
+    background: var(--white);
+    color: var(--navy);
+    border: 1px solid var(--border);
+  }
+  .btn-outline:hover {
+    background: #F7F9F9;
+    color: var(--navy);
+    border-color: var(--navy);
+  }
+  .btn-primary {
+    background: var(--navy);
+    color: var(--white);
+  }
+  .btn svg { width: 14px; height: 14px; }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .status-draft { background: #F7F9F9; color: var(--navy); border: 1px solid var(--border); }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+
+  .brand-mark img {
+    width: 100%; height: 100%; object-fit: contain;
+    filter: saturate(0.9) contrast(1.02);
+  }
+  .brand-text { display: flex; flex-direction: column; justify-content: center; }
+  .header-meta { text-align: right; padding-top: 2px; }
+  .footer-brand {
+    display: flex; align-items: center; gap: 10px;
+    color: var(--navy);
+  }
+  .footer-brand img { width: 34px; height: 34px; object-fit: contain; }
+  .footer-brand-text {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    color: var(--navy);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .footer-brand-sub {
+    font-size: 9px; color: var(--text-muted); letter-spacing: 0.14em; text-transform: uppercase; margin-top: 2px;
+  }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .sheet-header, .sheet-body, .sheet-footer { border-color: #BFC7CA !important; }
+    .sheet-header::before, .sheet-header::after { background: #2F4951 !important; }
+    .btn-group, .add-row-btn, .mini-btn { display: none; }
+    .sheet-header, .sheet-footer, .totals-bar, .time-table thead, .project-table thead {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .page-wrapper { max-width: 100%; }
+  }
+
+  @media (max-width: 980px) {
+    .sheet-header, .sheet-body, .sheet-footer {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-top: 0;
+    border-radius: 0 0 14px 14px;
+    padding: 14px 28px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+  }
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+  <div class="sheet-header">
+    <div class="header-top">
+      <div class="company-brand">
+        <div class="brand-mark"><img src="data:image/png;base64,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" alt="Apical Holdings Limited logo"></div>
+        <div class="brand-text">
+          <div class="company-name">Apical Holdings Limited</div>
+          <div class="doc-type">Energy Resources · Timesheet Register</div>
+        </div>
+      </div>
+      <div class="header-meta">
+        <div class="ts-id">Timesheet Ref</div>
+        <div class="ts-number" id="tsRefNum">#TS-0001</div>
+        <div style="margin-top:8px;">
+          <span class="status-pill status-draft"><span class="status-dot"></span>Draft</span>
+        </div>
+      </div>
+    </div>
+    <div class="header-divider"></div>
+    <div class="header-title">Employee <em>Timesheet</em></div>
+    <div class="header-subtitle">Please complete all required fields accurately · Submit by Friday 5:00 PM</div>
+  </div>
+
+  <div class="sheet-body">
+    <div class="section">
+      <div class="section-label">
+        <div class="section-num">01</div>
+        <div class="section-title">Identification & Pay Period</div>
+        <div class="section-desc">Core Admin Info</div>
+      </div>
+      <div class="form-grid cols-3" style="margin-bottom:14px;">
+        <div class="form-field">
+          <label>Full Name <span class="required-dot"></span></label>
+          <input type="text" placeholder="e.g. Alexandra Johnson">
+        </div>
+        <div class="form-field">
+          <label>Employee ID <span class="required-dot"></span></label>
+          <input type="text" placeholder="e.g. EMP-2024-0042">
+        </div>
+        <div class="form-field">
+          <label>Department <span class="required-dot"></span></label>
+          <select>
+            <option value="">Select department…</option>
+            <option>Engineering</option>
+            <option>Product</option>
+            <option>Design</option>
+            <option>Marketing</option>
+            <option>Sales</option>
+            <option>Finance</option>
+            <option>Operations</option>
+            <option>Human Resources</option>
+            <option>Legal</option>
+            <option>Executive</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid cols-4">
+        <div class="form-field">
+          <label>Job Title</label>
+          <input type="text" placeholder="e.g. Senior Engineer">
+        </div>
+        <div class="form-field">
+          <label>Pay Period Start <span class="required-dot"></span></label>
+          <input type="date" id="periodStart">
+        </div>
+        <div class="form-field">
+          <label>Pay Period End <span class="required-dot"></span></label>
+          <input type="date" id="periodEnd">
+        </div>
+        <div class="form-field">
+          <label>Manager / Approver <span class="required-dot"></span></label>
+          <input type="text" placeholder="e.g. Michael Chen">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">
+        <div class="section-num">02</div>
+        <div class="section-title">Daily Time Log</div>
+        <div class="section-desc">Multiple Entries Per Day</div>
+      </div>
+
+      <div class="time-table-wrapper">
+        <table class="time-table">
+          <thead>
+            <tr>
+              <th style="width:130px;">Day</th>
+              <th style="width:78px;">In</th>
+              <th style="width:78px;">Out</th>
+              <th style="width:92px;">Break (min)</th>
+              <th style="width:180px;">Project Code</th>
+              <th>Task Description</th>
+              <th style="width:110px;">Hour Type</th>
+                            <th style="width:72px;">Total Hrs</th>
+              <th style="width:82px;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="timeTableBody"></tbody>
+        </table>
+        <div class="totals-bar">
+          <div class="total-item">
+            <div class="t-label">Total Hours</div>
+            <div class="t-value highlight" id="totalHours">0.0</div>
+            <div class="t-sub">Logged</div>
+          </div>
+          <div class="total-item">
+            <div class="t-label">Regular</div>
+            <div class="t-value" id="totalRegular">0.0</div>
+            <div class="t-sub">hrs</div>
+          </div>
+          <div class="total-item">
+            <div class="t-label">Overtime</div>
+            <div class="t-value" id="totalOvertime">0.0</div>
+            <div class="t-sub">hrs</div>
+          </div>
+          <div class="total-item">
+            <div class="t-label">PTO</div>
+            <div class="t-value" id="totalPto">0.0</div>
+            <div class="t-sub">hrs</div>
+          </div>
+          <div class="total-item">
+            <div class="t-label">Sick</div>
+            <div class="t-value" id="totalSick">0.0</div>
+            <div class="t-sub">hrs</div>
+          </div>
+          <div class="total-item">
+            <div class="t-label">Holiday</div>
+            <div class="t-value" id="totalHoliday">0.0</div>
+            <div class="t-sub">hrs</div>
+          </div>
+          <div class="total-item">
+            <div class="t-label">Billable</div>
+            <div class="t-value" id="totalBillable">0.0</div>
+            <div class="t-sub">Regular only</div>
+          </div>
+          <div class="total-item">
+            <div class="t-label">Non-Billable</div>
+            <div class="t-value" id="totalNonBillable">0.0</div>
+            <div class="t-sub">All others</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">
+        <div class="section-num">03</div>
+        <div class="section-title">Project & Client Allocation</div>
+        <div class="section-desc">Planning vs. Actual</div>
+      </div>
+
+      <div class="project-table-wrapper">
+        <table class="project-table">
+          <thead>
+            <tr>
+              <th>Project / Client Code</th>
+              <th>Category</th>
+              <th style="width:110px;">Hours Allocated</th>
+              <th style="width:110px;">Hours Used</th>
+              <th style="width:126px;">Productivity Index</th>
+              <th style="width:74px;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="projectEntries"></tbody>
+        </table>
+      </div>
+
+      <button class="add-row-btn" onclick="addProjectRow()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z"/></svg>
+        Add Project Row
+      </button>
+    </div>
+
+    <div class="section">
+      <div class="section-label">
+        <div class="section-num">04</div>
+        <div class="section-title">Hours Categorization & Productivity Indexes</div>
+        <div class="section-desc">Compact Payroll KPI View</div>
+      </div>
+      <div class="summary-cards compact">
+        <div class="summary-card compact kpi-accent">
+          <div class="sc-label">Total Working Hours</div>
+          <div class="sc-value" id="kpiTotalWorking">0.0</div>
+          <div class="sc-sub">All logged time</div>
+        </div>
+        <div class="summary-card compact">
+          <div class="sc-label">Total Billable Hours</div>
+          <div class="sc-value" id="kpiBillable">0.0</div>
+          <div class="sc-sub">Billable projects</div>
+        </div>
+        <div class="summary-card compact">
+          <div class="sc-label">Total Non-Billable</div>
+          <div class="sc-value" id="kpiNonBillable">0.0</div>
+          <div class="sc-sub">Internal / support work</div>
+        </div>
+        <div class="summary-card compact">
+          <div class="sc-label">Billable Utilization %</div>
+          <div class="sc-value" id="kpiUtilization">0%</div>
+          <div class="sc-sub">Billable ÷ working hours</div>
+        </div>
+        <div class="summary-card compact">
+          <div class="sc-label">Allocated Hours</div>
+          <div class="sc-value" id="kpiAllocated">0.0</div>
+          <div class="sc-sub">From Section 03</div>
+        </div>
+        <div class="summary-card compact">
+          <div class="sc-label">Used Hours</div>
+          <div class="sc-value" id="kpiUsed">0.0</div>
+          <div class="sc-sub">Matched project logs</div>
+        </div>
+        <div class="summary-card compact">
+          <div class="sc-label">Allocation Productivity %</div>
+          <div class="sc-value" id="kpiProductivity">0%</div>
+          <div class="sc-sub">Used ÷ allocated hours</div>
+        </div>
+        <div class="summary-card compact">
+          <div class="sc-label">Regular / OT / Leave</div>
+          <div class="sc-value" id="kpiMix">0.0 / 0.0 / 0.0</div>
+          <div class="sc-sub">Regular / overtime / leave</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">
+        <div class="section-num">05</div>
+        <div class="section-title">Comments & Notes</div>
+        <div class="section-desc">Anomalies · Explanations</div>
+      </div>
+      <div class="comments-area">
+        <textarea id="commentBox" maxlength="500" placeholder="Use this space to explain any scheduling anomalies, partial days, early departures, remote work arrangements, or other relevant notes…" oninput="updateCharCount()"></textarea>
+        <div class="char-count"><span id="charCount">0</span> / 500 characters</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">
+        <div class="section-num">06</div>
+        <div class="section-title">Employee Attestation & Signature</div>
+        <div class="section-desc">Compliance Certification</div>
+      </div>
+      <div class="attestation-box">
+        <div class="attest-title">Certification of Accuracy</div>
+        <div class="attest-text">
+          By signing below, I certify that the information recorded in this timesheet is true, accurate, and complete to the best of my knowledge. I confirm that all hours shown represent actual time worked during the stated pay period, that all break periods have been accurately recorded, and that I have not been instructed to record inaccurate information.
+        </div>
+        <div class="attest-check-row">
+          <div class="custom-checkbox" id="attestCheckbox" onclick="toggleAttest(this)">
+            <input type="checkbox" id="attestInput">
+            <span class="check-mark">✓</span>
+          </div>
+          <div class="attest-check-text">
+            I certify that the hours and information recorded on this timesheet are accurate and complete.
+          </div>
+        </div>
+        <div class="sig-row">
+          <div class="sig-field">
+            <div class="sig-label">Employee Signature</div>
+            <input class="sig-line" type="text" placeholder="Sign here…">
+          </div>
+          <div class="sig-field">
+            <div class="sig-label">Submission Date</div>
+            <input class="sig-line" type="date" id="submitDate">
+          </div>
+          <div class="sig-field">
+            <div class="sig-label">Manager Approval Signature</div>
+            <input class="sig-line" type="text" placeholder="Approver signs here…">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet-footer">
+    <div class="footer-brand">
+      <img src="data:image/png;base64,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" alt="Apical Holdings Limited logo">
+      <div>
+        <div class="footer-brand-text">Apical Holdings Limited</div>
+        <div class="footer-brand-sub">Energy Resources</div>
+      </div>
+    </div>
+    <div>
+      <div class="footer-info"><strong>Version</strong> 3.2 · For internal use only · Confidential</div>
+      <div class="footer-info" style="margin-top:4px;"><strong>Retention Policy:</strong> Keep for 7 years per labor law requirements</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-outline" onclick="window.print()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"/></svg>
+        Print / Save PDF
+      </button>
+      <button class="btn btn-primary" onclick="submitTimesheet()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+        Submit Timesheet
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const DAYS = [
+    { name: 'Monday', weekend: false },
+    { name: 'Tuesday', weekend: false },
+    { name: 'Wednesday', weekend: false },
+    { name: 'Thursday', weekend: false },
+    { name: 'Friday', weekend: false },
+    { name: 'Saturday', weekend: true },
+    { name: 'Sunday', weekend: true }
+  ];
+
+  const tsNum = '#TS-' + String(Math.floor(Math.random() * 9000) + 1000);
+  document.getElementById('tsRefNum').textContent = tsNum;
+
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const mondayOffset = (dayOfWeek === 0 ? -6 : 1 - dayOfWeek);
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + mondayOffset);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  function fmtDate(d) { return d.toISOString().split('T')[0]; }
+  document.getElementById('periodStart').value = fmtDate(monday);
+  document.getElementById('periodEnd').value = fmtDate(sunday);
+  document.getElementById('submitDate').value = fmtDate(today);
+
+  function getStartDate() {
+    const startValue = document.getElementById('periodStart').value;
+    if (startValue) {
+      const parts = startValue.split('-').map(Number);
+      return new Date(parts[0], parts[1] - 1, parts[2]);
+    }
+    return new Date(monday);
+  }
+
+  function getEndDate() {
+    const endValue = document.getElementById('periodEnd').value;
+    if (endValue) {
+      const parts = endValue.split('-').map(Number);
+      return new Date(parts[0], parts[1] - 1, parts[2]);
+    }
+    const fallback = getStartDate();
+    fallback.setDate(fallback.getDate() + 6);
+    return fallback;
+  }
+
+  function getPeriodDates() {
+    const startDate = getStartDate();
+    const endDate = getEndDate();
+    const dates = [];
+    const cursor = new Date(startDate);
+    if (endDate < startDate) {
+      const fallbackEnd = new Date(startDate);
+      fallbackEnd.setDate(startDate.getDate() + 6);
+      while (cursor <= fallbackEnd) {
+        dates.push(new Date(cursor));
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      return dates;
+    }
+    while (cursor <= endDate) {
+      dates.push(new Date(cursor));
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return dates;
+  }
+
+  function getDateForRow(dayIdx) {
+    return getPeriodDates()[dayIdx] || getStartDate();
+  }
+
+  function formatDayDate(dayIdx) {
+    const dateObj = getDateForRow(dayIdx);
+    return dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;');
+  }
+
+  function updateTypeStyle(selectEl) {
+    selectEl.className = 'hour-type-select ' + selectEl.value;
+  }
+
+  function getProjectCodes() {
+    return Array.from(document.querySelectorAll('.project-code-input'))
+      .map(el => el.value.trim())
+      .filter(Boolean);
+  }
+
+  function makeProjectOptions(selected = '') {
+    const codes = getProjectCodes();
+    let options = '<option value="">— Select —</option>';
+    codes.forEach(code => {
+      const safe = escapeHtml(code);
+      const isSelected = code === selected ? 'selected' : '';
+      options += `<option value="${safe}" ${isSelected}>${safe}</option>`;
+    });
+    if (selected && !codes.includes(selected)) {
+      const safe = escapeHtml(selected);
+      options += `<option value="${safe}" selected>${safe}</option>`;
+    }
+    return options;
+  }
+
+  function refreshProjectDropdowns() {
+    document.querySelectorAll('.time-project-select').forEach(select => {
+      const current = select.value;
+      select.innerHTML = makeProjectOptions(current);
+    });
+    updateProjectUsage();
+  }
+
+  function createDayLabelHtml(dayIdx) {
+    const dateObj = getDateForRow(dayIdx);
+    const dayName = dateObj.toLocaleDateString('en-GB', { weekday: 'long' });
+    return `
+      <div class="day-label">
+        <span class="day-name">${dayName}</span>
+        <span class="day-date-display">${formatDayDate(dayIdx)}</span>
+        <span class="day-subnote">Use + to add another project line for this day</span>
+      </div>
+    `;
+  }
+
+  function createTimeRow(dayIdx, showDayLabel = false) {
+    const dateObj = getDateForRow(dayIdx);
+    const isWeekend = [0, 6].includes(dateObj.getDay());
+    const tr = document.createElement('tr');
+    tr.className = isWeekend ? 'weekend-row time-entry-row' : 'time-entry-row';
+    tr.dataset.dayIdx = dayIdx;
+
+    tr.innerHTML = `
+      <td class="day-cell">${showDayLabel ? createDayLabelHtml(dayIdx) : ''}</td>
+      <td><input class="table-input time-in" type="time" value="${isWeekend ? '' : '09:00'}" oninput="recalcAll()"></td>
+      <td><input class="table-input time-out" type="time" value="${isWeekend ? '' : '17:30'}" oninput="recalcAll()"></td>
+      <td><input class="table-input time-break" type="number" placeholder="30" min="0" max="480" style="width:74px;" oninput="recalcAll()"></td>
+      <td>
+        <select class="table-select time-project-select" onchange="recalcAll()">
+          ${makeProjectOptions()}
+        </select>
+      </td>
+      <td><textarea class="table-textarea time-task" placeholder="${isWeekend ? 'Rest day or exception note…' : 'Describe work done for this entry…'}"></textarea></td>
+      <td>
+        <select class="hour-type-select regular" onchange="updateTypeStyle(this); recalcAll();">
+          <option value="regular">Regular</option>
+          <option value="overtime">Overtime</option>
+          <option value="pto">PTO / Vacation</option>
+          <option value="sick">Sick / Medical</option>
+          <option value="holiday">Public Holiday</option>
+        </select>
+      </td>
+      <td class="total-cell zero">—</td>
+      <td>
+        <div class="row-actions">
+          <button class="mini-btn" type="button" title="Add row" onclick="addTimeRow(${dayIdx}, this)">+</button>
+          <button class="mini-btn remove" type="button" title="Remove row" onclick="removeTimeRow(this)">×</button>
+        </div>
+      </td>
+    `;
+    return tr;
+  }
+
+  function buildTimeTable() {
+    const body = document.getElementById('timeTableBody');
+    body.innerHTML = '';
+    getPeriodDates().forEach((_, dayIdx) => {
+      body.appendChild(createTimeRow(dayIdx, true));
+    });
+    recalcAll();
+  }
+
+  function addTimeRow(dayIdx, buttonEl) {
+    const currentRow = buttonEl.closest('tr');
+    const newRow = createTimeRow(dayIdx, false);
+    let insertAfter = currentRow;
+    while (insertAfter.nextElementSibling && Number(insertAfter.nextElementSibling.dataset.dayIdx) === dayIdx) {
+      insertAfter = insertAfter.nextElementSibling;
+    }
+    insertAfter.insertAdjacentElement('afterend', newRow);
+    refreshDayCells(dayIdx);
+    refreshProjectDropdowns();
+    recalcAll();
+  }
+
+  function removeTimeRow(buttonEl) {
+    const row = buttonEl.closest('tr');
+    const dayIdx = Number(row.dataset.dayIdx);
+    const rowsForDay = document.querySelectorAll(`tr[data-day-idx="${dayIdx}"], tr[data-dayIdx="${dayIdx}"]`);
+    if (rowsForDay.length <= 1) return;
+    row.remove();
+    refreshDayCells(dayIdx);
+    recalcAll();
+  }
+
+  function refreshDayCells(dayIdx) {
+    const rows = Array.from(document.querySelectorAll(`tr[data-dayIdx="${dayIdx}"]`));
+    rows.forEach((row, idx) => {
+      const cell = row.querySelector('.day-cell');
+      cell.innerHTML = idx === 0 ? createDayLabelHtml(dayIdx) : '';
+    });
+  }
+
+  function calcRowHours(row) {
+    const inTime = row.querySelector('.time-in').value;
+    const outTime = row.querySelector('.time-out').value;
+    const breakMin = parseFloat(row.querySelector('.time-break').value) || 0;
+    const totalCell = row.querySelector('.total-cell');
+
+    if (inTime && outTime) {
+      const [ih, im] = inTime.split(':').map(Number);
+      const [oh, om] = outTime.split(':').map(Number);
+      let mins = (oh * 60 + om) - (ih * 60 + im) - breakMin;
+      if (mins < 0) mins += 24 * 60;
+      const hrs = Math.max(0, mins / 60);
+      totalCell.textContent = hrs.toFixed(1);
+      totalCell.className = 'total-cell' + (hrs === 0 ? ' zero' : '');
+      return hrs;
+    }
+    totalCell.textContent = '—';
+    totalCell.className = 'total-cell zero';
+    return 0;
+  }
+
+  function addProjectRow(code = '', category = 'Client Work', allocated = '') {
+    const tbody = document.getElementById('projectEntries');
+    const tr = document.createElement('tr');
+    tr.className = 'project-row';
+    tr.innerHTML = `
+      <td><input class="table-input project-code-input" type="text" placeholder="e.g. PRJ-441 / ACME Corp" value="${escapeHtml(code)}" oninput="refreshProjectDropdowns()"></td>
+      <td>
+        <select class="table-select project-category-select" onchange="refreshProjectDropdowns()">
+          <option ${category === 'Client Work' ? 'selected' : ''}>Client Work</option>
+          <option ${category === 'Internal Project' ? 'selected' : ''}>Internal Project</option>
+          <option ${category === 'Admin / Ops' ? 'selected' : ''}>Admin / Ops</option>
+          <option ${category === 'Training' ? 'selected' : ''}>Training</option>
+          <option ${category === 'Business Dev' ? 'selected' : ''}>Business Dev</option>
+          <option ${category === 'R&D' ? 'selected' : ''}>R&D</option>
+        </select>
+      </td>
+      <td><input class="table-input project-allocated-input" type="number" placeholder="0.0" min="0" step="0.5" value="${escapeHtml(allocated)}" oninput="updateProjectUsage()"></td>
+      <td class="project-metric project-hours-used">0.0</td>
+      <td class="project-metric"><span class="productivity-pill productivity-na">—</span></td>
+      <td>
+        <div class="row-actions">
+          <button class="mini-btn remove" type="button" title="Remove" onclick="removeProjectRow(this)">×</button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+    refreshProjectDropdowns();
+  }
+
+  function removeProjectRow(buttonEl) {
+    const rows = document.querySelectorAll('#projectEntries .project-row');
+    if (rows.length <= 1) return;
+    buttonEl.closest('tr').remove();
+    refreshProjectDropdowns();
+  }
+
+  function productivityClass(percent) {
+    if (!isFinite(percent)) return 'productivity-na';
+    if (percent <= 90) return 'productivity-mid';
+    if (percent <= 110) return 'productivity-good';
+    return 'productivity-high';
+  }
+
+  function updateProjectUsage() {
+    const usageMap = {};
+    document.querySelectorAll('.time-entry-row').forEach(row => {
+      const project = row.querySelector('.time-project-select').value.trim();
+      const hrs = parseFloat(row.querySelector('.total-cell').textContent) || 0;
+      if (project) usageMap[project] = (usageMap[project] || 0) + hrs;
+    });
+
+    let totalAllocated = 0;
+    let totalUsedMatched = 0;
+
+    document.querySelectorAll('#projectEntries .project-row').forEach(row => {
+      const code = row.querySelector('.project-code-input').value.trim();
+      const allocated = parseFloat(row.querySelector('.project-allocated-input').value) || 0;
+      const used = code ? (usageMap[code] || 0) : 0;
+      totalAllocated += allocated;
+      totalUsedMatched += used;
+
+      row.querySelector('.project-hours-used').textContent = used.toFixed(1);
+
+      const pill = row.querySelector('.productivity-pill');
+      if (allocated > 0) {
+        const percent = (used / allocated) * 100;
+        pill.className = 'productivity-pill ' + productivityClass(percent);
+        pill.textContent = percent.toFixed(0) + '%';
+      } else {
+        pill.className = 'productivity-pill productivity-na';
+        pill.textContent = '—';
+      }
+    });
+
+    document.getElementById('kpiAllocated').textContent = totalAllocated.toFixed(1);
+    document.getElementById('kpiUsed').textContent = totalUsedMatched.toFixed(1);
+    document.getElementById('kpiProductivity').textContent = totalAllocated > 0 ? ((totalUsedMatched / totalAllocated) * 100).toFixed(0) + '%' : '0%';
+  }
+
+  function recalcAll() {
+    let total = 0, regular = 0, overtime = 0, pto = 0, sick = 0, holiday = 0, billable = 0, nonBillable = 0, leave = 0;
+
+    document.querySelectorAll('.time-entry-row').forEach(row => {
+      const hrs = calcRowHours(row);
+      total += hrs;
+
+      const type = row.querySelector('.hour-type-select').value;
+
+      if (type === 'regular') {
+        regular += hrs;
+        billable += hrs;
+      } else if (type === 'overtime') {
+        overtime += hrs;
+        nonBillable += hrs;
+      } else if (type === 'pto') {
+        pto += hrs;
+        leave += hrs;
+        nonBillable += hrs;
+      } else if (type === 'sick') {
+        sick += hrs;
+        leave += hrs;
+        nonBillable += hrs;
+      } else if (type === 'holiday') {
+        holiday += hrs;
+        leave += hrs;
+        nonBillable += hrs;
+      } else {
+        nonBillable += hrs;
+      }
+    });
+
+    document.getElementById('totalHours').textContent = total.toFixed(1);
+    document.getElementById('totalRegular').textContent = regular.toFixed(1);
+    document.getElementById('totalOvertime').textContent = overtime.toFixed(1);
+    document.getElementById('totalPto').textContent = pto.toFixed(1);
+    document.getElementById('totalSick').textContent = sick.toFixed(1);
+    document.getElementById('totalHoliday').textContent = holiday.toFixed(1);
+    document.getElementById('totalBillable').textContent = billable.toFixed(1);
+    document.getElementById('totalNonBillable').textContent = nonBillable.toFixed(1);
+
+    document.getElementById('kpiTotalWorking').textContent = total.toFixed(1);
+    document.getElementById('kpiBillable').textContent = billable.toFixed(1);
+    document.getElementById('kpiNonBillable').textContent = nonBillable.toFixed(1);
+    document.getElementById('kpiUtilization').textContent = total > 0 ? ((billable / total) * 100).toFixed(0) + '%' : '0%';
+    document.getElementById('kpiMix').textContent = `${regular.toFixed(1)} / ${overtime.toFixed(1)} / ${leave.toFixed(1)}`;
+
+    updateProjectUsage();
+  }
+
+  function toggleAttest(el) {
+    el.classList.toggle('checked');
+    document.getElementById('attestInput').checked = el.classList.contains('checked');
+  }
+
+  function updateCharCount() {
+    const box = document.getElementById('commentBox');
+    document.getElementById('charCount').textContent = box.value.length;
+  }
+
+  function submitTimesheet() {
+    const attested = document.getElementById('attestInput').checked;
+    if (!attested) {
+      alert('Please check the attestation box before submitting.');
+      return;
+    }
+    document.querySelector('.status-pill').innerHTML = '<span class="status-dot" style="background:#22C55E"></span><span style="color:#22C55E">Submitted</span>';
+    alert('✓ Timesheet submitted successfully!\\n\\nRef: ' + tsNum + '\\nYour manager will be notified for approval.');
+  }
+
+  document.getElementById('periodStart').addEventListener('change', buildTimeTable);
+  document.getElementById('periodEnd').addEventListener('change', buildTimeTable);
+
+  buildTimeTable();
+  addProjectRow('PRJ-001 Internal', 'Internal Project', '10');
+  addProjectRow('PRJ-002 Client A', 'Client Work', '16');
+  addProjectRow('PRJ-003 Admin', 'Admin / Ops', '4');
+</script>
+</body>
+</html>
